@@ -114,7 +114,7 @@ In order to add the `<authPass>`, you should:
 
 To add, update and/or delete auth users at a later date, just edit the '`<environment>-PlatinumEnochBasicAuthTable`', accordingly.
 
-### Tips
+### Warning
 
 Sometimes redeploying a child stack is prevented due to a Lambda@Edge reserved name from a previous deployment.
 
