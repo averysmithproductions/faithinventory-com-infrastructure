@@ -1,0 +1,52 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::Serverless-2016-10-31
+Description: Hosted Zone, TLS Certificate, Top Level Lambda@Edge and BasicAuth Infrastructure
+Parameters:
+  DomainName:
+    Type: String
+    Default: <domainName>
+  Environment:
+    Type: String
+    Default: global
+    AllowedValues: [global]
+  HostedZoneId:
+    Type: String
+    Default: <HostedZoneId>
+  TemplatesBucketName:
+    Type: String
+    Default: <TemplatesBucketName>
+Conditions:
+  IsGlobalStack: !Equals [!Ref Environment, global]
+Resources:
+  #HostedZone
+  HostedZone:
+    Type: AWS::Route53::HostedZone
+    Condition: IsGlobalStack
+    Properties: 
+      HostedZoneConfig:
+        Comment: !Sub 'My hosted zone for ${DomainName}'
+      Name: !Ref DomainName
+  #Certificate
+  TLSCertificate:
+    Type: AWS::CertificateManager::Certificate
+    # Certificates should only be created in one environment, so create it in production.
+    # please note, certificates will still be utilized by all environments.
+    Condition: IsGlobalStack
+    Properties:
+      DomainName: !Ref DomainName
+      SubjectAlternativeNames:
+      - !Sub "www.${DomainName}"
+      - !Sub "*.www.${DomainName}"
+      - !Sub "*.${DomainName}"
+      ValidationMethod: DNS
+Outputs:
+  HostedZoneId:
+    Description: Hosted Zone Id
+    Value: !Ref HostedZone
+    Export:
+      Name: global-HostedZoneId
+  TLSCertificateArn:
+    Description: TLSCertificate
+    Value: !Ref TLSCertificate
+    Export:
+      Name: global-TLSCertificateArn

@@ -1,0 +1,6 @@
+.DS_Store
+build
+templates
+node_modules
+scripts/put-parameters.sh
+cloudformation/thalliumeli.yaml

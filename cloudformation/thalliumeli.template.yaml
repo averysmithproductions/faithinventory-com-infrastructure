@@ -1,0 +1,325 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::Serverless-2016-10-31
+Description: ThalliumEli Infrastructure (ApiGateway->Lambda->DynamoDB,SES)
+Mappings:
+  Config:     
+    prod:
+      SesSenderEmailAddress: /prod/thalliumeli/SES_SENDER_EMAIL_ADDRESS
+    dev:
+      SesSenderEmailAddress: /dev/thalliumeli/SES_SENDER_EMAIL_ADDRESS
+    avery:
+      SesSenderEmailAddress: /dev/thalliumeli/SES_SENDER_EMAIL_ADDRESS
+Parameters:
+  DomainName:
+    Type: String
+    Default: <DomainName>
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues: [prod, dev, avery]
+  GatsbyWebhookId:
+    Type: String
+    Default: /global/thalliumeli/gatsbyjs.com/WEBHOOK_ID
+Resources:
+  #ThalliumEli ApiGateway
+  ThalliumEliApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: !Ref Environment
+      DefinitionBody:
+        swagger: 2.0
+        info:
+          title:
+            Ref: AWS::StackName
+        basePath: !Sub "/${Environment}"
+        x-amazon-apigateway-binary-media-types:
+          - '*/*'
+        paths:
+          /api/1/inventory/items:
+            get:
+              x-amazon-apigateway-integration:
+                httpMethod: POST
+                type: aws_proxy
+                uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ThalliumEliLambda.Arn}/invocations
+                passthroughBehavior: "when_no_match"
+              responses: {}
+            options:
+              x-amazon-apigateway-integration:
+                httpMethod: POST
+                type: aws_proxy
+                uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ThalliumEliLambda.Arn}/invocations
+                passthroughBehavior: "when_no_match"
+              responses: {}
+          /api/1/inventory/items/{id}:
+            put:
+              x-amazon-apigateway-integration:
+                httpMethod: POST
+                type: aws_proxy
+                uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ThalliumEliLambda.Arn}/invocations
+                passthroughBehavior: "when_no_match"
+              responses: {}
+            delete:
+              x-amazon-apigateway-integration:
+                httpMethod: POST
+                type: aws_proxy
+                uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ThalliumEliLambda.Arn}/invocations
+                passthroughBehavior: "when_no_match"
+              responses: {}
+            options:
+              x-amazon-apigateway-integration:
+                httpMethod: POST
+                type: aws_proxy
+                uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ThalliumEliLambda.Arn}/invocations
+                passthroughBehavior: "when_no_match"
+              responses: {}
+          /api/1/inventory/item:
+            post:
+              x-amazon-apigateway-integration:
+                httpMethod: POST
+                type: aws_proxy
+                uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ThalliumEliLambda.Arn}/invocations
+                passthroughBehavior: "when_no_match"
+              responses: {}
+            options:
+              x-amazon-apigateway-integration:
+                httpMethod: POST
+                type: aws_proxy
+                uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ThalliumEliLambda.Arn}/invocations
+                passthroughBehavior: "when_no_match"
+              responses: {}
+          /{proxy+}:
+            x-amazon-apigateway-any-method:
+              x-amazon-apigateway-integration:
+                httpMethod: POST
+                type: aws_proxy
+                uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ThalliumEliLambda.Arn}/invocations
+                passthroughBehavior: "when_no_match"
+              responses: {}
+          /api/1/inventory/admin/magic-link:
+            post:
+              x-amazon-apigateway-integration:
+                httpMethod: POST
+                type: aws_proxy
+                uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ThalliumEliLambda.Arn}/invocations
+                passthroughBehavior: "when_no_match"
+              responses: {}
+            options:
+              x-amazon-apigateway-integration:
+                httpMethod: POST
+                type: aws_proxy
+                uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ThalliumEliLambda.Arn}/invocations
+                passthroughBehavior: "when_no_match"
+              responses: {}
+          /api/1/inventory/admin/hash:
+            get:
+              x-amazon-apigateway-integration:
+                httpMethod: POST
+                type: aws_proxy
+                uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ThalliumEliLambda.Arn}/invocations
+                passthroughBehavior: "when_no_match"
+              responses: {}
+            options:
+              x-amazon-apigateway-integration:
+                httpMethod: POST
+                type: aws_proxy
+                uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ThalliumEliLambda.Arn}/invocations
+                passthroughBehavior: "when_no_match"
+              responses: {}
+          /api/1/inventory/admin/s3/urls:
+            get:
+              x-amazon-apigateway-integration:
+                httpMethod: POST
+                type: aws_proxy
+                uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ThalliumEliLambda.Arn}/invocations
+                passthroughBehavior: "when_no_match"
+              responses: {}
+            options:
+              x-amazon-apigateway-integration:
+                httpMethod: POST
+                type: aws_proxy
+                uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ThalliumEliLambda.Arn}/invocations
+                passthroughBehavior: "when_no_match"
+              responses: {}
+          /api/1/inventory/admin/s3/images:
+            delete:
+              x-amazon-apigateway-integration:
+                httpMethod: POST
+                type: aws_proxy
+                uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ThalliumEliLambda.Arn}/invocations
+                passthroughBehavior: "when_no_match"
+              responses: {}
+            options:
+              x-amazon-apigateway-integration:
+                httpMethod: POST
+                type: aws_proxy
+                uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ThalliumEliLambda.Arn}/invocations
+                passthroughBehavior: "when_no_match"
+              responses: {}
+          /api/1/inventory/admin/cloudfront-cache:
+            delete:
+              x-amazon-apigateway-integration:
+                httpMethod: POST
+                type: aws_proxy
+                uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ThalliumEliLambda.Arn}/invocations
+                passthroughBehavior: "when_no_match"
+              responses: {}
+            options:
+              x-amazon-apigateway-integration:
+                httpMethod: POST
+                type: aws_proxy
+                uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ThalliumEliLambda.Arn}/invocations
+                passthroughBehavior: "when_no_match"
+              responses: {}
+  #ThalliumEli Lambda
+  ThalliumEliLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${Environment}-ThalliumEliLambda
+      Handler: index.handler
+      Runtime: nodejs12.x
+      CodeUri:
+        Bucket: !Sub ${Environment}-thalliumeli-api
+        Key: lambda.zip
+      MemorySize: 128
+      Timeout: 300
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AmazonDynamoDBFullAccess
+        - CloudFrontFullAccess
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: "Allow"
+              Action:
+                - "ses:SendEmail"
+                - "ses:SendRawEmail"
+              Resource: "*"
+              Condition:
+                  StringEquals:
+                    "ses:FromAddress": !Join ['', ['{{resolve:ssm:', !FindInMap [Config, !Ref Environment, SesSenderEmailAddress], ":1}}"]]
+      Events:
+        GetItems:
+          Type: Api
+          Properties:
+            Path: /api/1/inventory/items
+            Method: get
+            RestApiId: !Ref ThalliumEliApi
+        CreateItem:
+          Type: Api
+          Properties:
+            Path: /api/1/inventory/item
+            Method: post
+            RestApiId: !Ref ThalliumEliApi
+        UpdateItem:
+          Type: Api
+          Properties:
+            Path: /api/1/inventory/items/{id}
+            Method: put
+            RestApiId: !Ref ThalliumEliApi
+        DeleteItem:
+          Type: Api
+          Properties:
+            Path: /api/1/inventory/items/{id}
+            Method: delete
+            RestApiId: !Ref ThalliumEliApi
+        RequestGraphQL:
+          Type: Api
+          Properties:
+            Path: /{proxy+}
+            Method: any
+            RestApiId: !Ref ThalliumEliApi
+        SendAdminMagicLink:
+          Type: Api
+          Properties:
+            Path: /api/1/inventory/admin/magic-link
+            Method: post
+            RestApiId: !Ref ThalliumEliApi
+        VerifyHash:
+          Type: Api
+          Properties:
+            Path: /api/1/inventory/admin/hash
+            Method: get
+            RestApiId: !Ref ThalliumEliApi
+        GetS3UploadUrl:
+          Type: Api
+          Properties:
+            Path: /api/1/inventory/admin/s3/urls
+            Method: get
+            RestApiId: !Ref ThalliumEliApi
+        DeleteImages:
+          Type: Api
+          Properties:
+            Path: /api/1/inventory/admin/s3/images
+            Method: delete
+            RestApiId: !Ref ThalliumEliApi
+        DeleteCloudFrontCache:
+          Type: Api
+          Properties:
+            Path: /api/1/inventory/admin/cloudfront-cache
+            Method: delete
+            RestApiId: !Ref ThalliumEliApi
+      Environment:
+        Variables:
+          ALLOWED_MAGICLINK_URL: !Sub "https://${DomainName}"
+          BARIUMNAHUM_DISTRIBUTION_ID: <BariumNahumCDNDistributionId>
+          ENVIRONMENT: !Ref Environment 
+          GATSBY_WEBHOOK_ID: !Sub "{{resolve:ssm:${GatsbyWebhookId}:1}}"
+          INVENTORY_ITEMS_TABLE: !Ref ThalliumEliInventoryItemsTable
+          INVENTORY_ADMINS_TABLE: !Ref ThalliumEliInventoryAdminsTable
+          PLATINUMENOCH_MEDIA_BUCKET_NAME: !Sub ${Environment}-platinumenoch-media
+          SES_SENDER_EMAIL_ADDRESS: !Join ['', ['{{resolve:ssm:', !FindInMap [Config, !Ref Environment, SesSenderEmailAddress], ":1}}"]]
+  #ThalliumEli DynamoDB
+  ThalliumEliInventoryItemsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      KeySchema:
+        - AttributeName: partitionKey
+          KeyType: HASH
+        - AttributeName: id
+          KeyType: RANGE
+      AttributeDefinitions:
+        - AttributeName: partitionKey
+          AttributeType: S
+        - AttributeName: id
+          AttributeType: S
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+      TableName: !Sub ${Environment}-ThalliumEliInventoryItemsTable
+  ThalliumEliInventoryAdminsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      KeySchema:
+        - AttributeName: partitionKey
+          KeyType: HASH
+        - AttributeName: email
+          KeyType: RANGE
+      AttributeDefinitions:
+        - AttributeName: partitionKey
+          AttributeType: S
+        - AttributeName: email
+          AttributeType: S
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+      TableName: !Sub ${Environment}-ThalliumEliInventoryAdminsTable
+  ThalliumEliSESConfigSet:
+    Type: AWS::SES::ConfigurationSet
+    Properties:
+      Name: !Sub ${Environment}-ThalliumEliSESConfigSet
+  ThalliumEliSESCWEventDestination:
+    Type: AWS::SES::ConfigurationSetEventDestination
+    Properties:
+      ConfigurationSetName: !Ref ThalliumEliSESConfigSet
+      EventDestination:
+        Name: !Sub ${Environment}-ThalliumEliSESCWEventDestination
+        Enabled: true
+        MatchingEventTypes: ["bounce", "complaint", "delivery", "reject", "send"]
+        CloudWatchDestination:
+          DimensionConfigurations:
+          - DimensionName: !Ref ThalliumEliSESConfigSet
+            DefaultDimensionValue: 'null'
+            DimensionValueSource: emailHeader
+Outputs:
+  ThalliumEliApiUrl:
+    Description: API Gateway Url
+    Value: !Sub ${ThalliumEliApi}.execute-api.${AWS::Region}.amazonaws.com

@@ -1,0 +1,43 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: DNS RecordSet Infrastructure (Route53->CloudFront)
+Parameters:
+  BariumNahumCDNDomainName:
+    Type: String
+    Default: <BariumNahumCDNDomainName>
+  BariumNahumRedirectCDNDomainName:
+    Type: String
+    Default: <BariumNahumRedirectCDNDomainName>
+  DomainName:
+    Type: String
+    Default: <domainName>
+  DomainNameRedirect:
+    Type: String
+    Default: <domainNameRedirect>
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues: [prod, dev, avery]
+Resources:
+  # Route53
+  ArgonTimothyARecordSetGroup:
+    Type: AWS::Route53::RecordSetGroup
+    Properties:
+      HostedZoneId: !ImportValue global-HostedZoneId
+      Comment: !Sub "RecordSetGroup for ${DomainName}"
+      RecordSets:
+      # <domainName, <environment>.<domainName>
+      - Name: !Ref DomainName
+        Type: A
+        AliasTarget:
+          DNSName: !Ref BariumNahumCDNDomainName
+          HostedZoneId: Z2FDTNDATAQYW2 #CloudFront's HostedZone
+      # www.<domainName>, <environment>.www.<domainName>
+      - Name: !Ref DomainNameRedirect # redirect ://www. to ://
+        Type: A
+        AliasTarget:
+          DNSName: !Ref BariumNahumRedirectCDNDomainName
+          HostedZoneId: Z2FDTNDATAQYW2 #CloudFront's HostedZone
+Outputs:
+  ArgonTimothyARecordSetGroup:
+    Description: RecordSetGroup info
+    Value: !Ref ArgonTimothyARecordSetGroup

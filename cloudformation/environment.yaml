@@ -1,0 +1,59 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Parameters:
+  CacheHash:
+    Type: String
+    Default: <CacheHash>
+  DomainName:
+    Type: String
+    Default: <DomainName>
+  DomainNameRedirect:
+    Type: String
+    Default: <DomainNameRedirect>
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues: [prod, dev, avery]
+  TemplatesBucketName:
+    Type: String
+    Default: <TemplatesBucketName>
+Resources:
+  ThalliumEliStack: 
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      Parameters:
+        DomainName: !Ref DomainName
+        Environment: !Ref Environment
+      TemplateURL: !Sub "https://${TemplatesBucketName}.s3.amazonaws.com/cloudformation/thalliumeli.yaml"
+  PlatinumEnochStack: 
+    Type: AWS::CloudFormation::Stack
+    Properties: 
+      Parameters:
+        CacheHash: !Ref CacheHash 
+        DomainName: !Ref DomainName
+        Environment: !Ref Environment
+        TemplatesBucketName: !Ref TemplatesBucketName
+      TemplateURL: !Sub "https://${TemplatesBucketName}.s3.amazonaws.com/cloudformation/platinumenoch.yaml"
+  BariumNahumStack: 
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      Parameters:
+        DomainName: !Ref DomainName
+        DomainNameRedirect: !Ref DomainNameRedirect
+        Environment: !Ref Environment
+        PlatinumEnochBasicAuthLambdaEdgeVersion: !GetAtt PlatinumEnochStack.Outputs.PlatinumEnochBasicAuthLambdaEdgeVersion
+        ThalliumEliApiUrl: !GetAtt ThalliumEliStack.Outputs.ThalliumEliApiUrl
+      TemplateURL: !Sub "https://${TemplatesBucketName}.s3.amazonaws.com/cloudformation/bariumnahum.yaml"
+    DependsOn:
+    - PlatinumEnochStack
+    - ThalliumEliStack
+  ArgonTimothyStack: 
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      Parameters:
+        BariumNahumCDNDomainName: !GetAtt BariumNahumStack.Outputs.BariumNahumCDNDomainName
+        BariumNahumRedirectCDNDomainName: !GetAtt BariumNahumStack.Outputs.BariumNahumRedirectCDNDomainName
+        DomainName: !Ref DomainName
+        DomainNameRedirect: !Ref DomainNameRedirect
+        Environment: !Ref Environment
+      TemplateURL: !Sub "https://${TemplatesBucketName}.s3.amazonaws.com/cloudformation/argontimothy.yaml"
+    DependsOn: BariumNahumStack

@@ -1,0 +1,139 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: BariumNahum Infrastructure (CloudFront->[S3,ApiGateway])
+Parameters:
+  DomainName:
+    Type: String
+    Default: <DomainName>
+  DomainNameRedirect:
+    Type: String
+    Default: <DomainNameRedirect>
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues: [prod, dev, avery]
+  PlatinumEnochBasicAuthLambdaEdgeVersion:
+    Type: String
+    Default: <PlatinumEnochBasicAuthLambdaEdgeVersion>
+  ThalliumEliApiUrl:
+    Type: String
+    Default: <ThalliumEliApiUrl>
+Resources:
+  #CloudFront
+  BariumNahumCDN:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Comment: !Sub "${Environment} BariumNahumCDN for PlatinumEnoch site and ThalliumEli api"
+        Aliases:
+        - !Ref DomainName
+        Enabled: 'true'
+        DefaultCacheBehavior:
+          TargetOriginId: platinumenoch
+          ViewerProtocolPolicy: redirect-to-https
+          Compress: true
+          # DefaultTTL and MaxTTL do not modify the response object
+          # but they enable CloudFront to allow the 'Cache-Control' headers to be sent from Lambda@Edge
+          # for more information: - https://stackoverflow.com/questions/58915273/cloudfront-customize-object-caching-does-not-work
+          DefaultTTL: 2592000 # 30 days in seconds
+          MaxTTL: 31536000 #365 days in seconds
+          LambdaFunctionAssociations:
+            - EventType: viewer-request
+              # <SAM-Function.Version> provides {FunctionARN}:{Version} which is exactly what Cloudfront expects
+              # SAM Benefit here is upon function changes this function version will also be updated in Cloudfront
+              LambdaFunctionARN: !Ref PlatinumEnochBasicAuthLambdaEdgeVersion
+          ForwardedValues:
+            QueryString: true
+        DefaultRootObject: index.html
+        CacheBehaviors:
+        - PathPattern: '/api/1/*'
+          TargetOriginId: thalliumeli-api
+          ViewerProtocolPolicy: https-only
+          AllowedMethods:
+          - DELETE
+          - GET
+          - HEAD
+          - OPTIONS
+          - PATCH
+          - POST
+          - PUT
+          CachedMethods:
+          - GET
+          - HEAD
+          - OPTIONS
+          Compress: true
+          ForwardedValues:
+            Headers:
+            - Accept
+            - Referer
+            - Authorization
+            - Content-Type
+            QueryString: true
+        Origins:
+        - DomainName: !Sub "${Environment}-platinumenoch.s3-website-${AWS::Region}.amazonaws.com"
+          Id: platinumenoch
+          CustomOriginConfig:
+            HTTPPort: '80'
+            HTTPSPort: '443'
+            OriginProtocolPolicy: http-only
+          OriginCustomHeaders:
+            - HeaderName: Referer
+              HeaderValue: !Sub "https://${DomainName}/"
+        - DomainName: !Ref ThalliumEliApiUrl
+          OriginPath: !Sub "/${Environment}"
+          Id: thalliumeli-api
+          CustomOriginConfig:
+            OriginProtocolPolicy: https-only
+        ViewerCertificate:
+          AcmCertificateArn: !ImportValue global-TLSCertificateArn
+          MinimumProtocolVersion: TLSv1.1_2016
+          SslSupportMethod: sni-only
+        PriceClass: PriceClass_100
+  BariumNahumRedirectCDN:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Comment: !Sub "${Environment} BariumNahumRedirectCDN for BariumNahum www redirect"
+        Aliases:
+        - !Ref DomainNameRedirect
+        Enabled: 'true'
+        DefaultCacheBehavior:
+          TargetOriginId: bariumnahum-redirect
+          ViewerProtocolPolicy: redirect-to-https
+          ForwardedValues:
+            QueryString: true
+        Origins:
+        - DomainName: !Sub "${BariumNahumRedirectS3Bucket}.s3-website-${AWS::Region}.amazonaws.com"
+          Id: bariumnahum-redirect
+          CustomOriginConfig:
+            HTTPPort: '80'
+            HTTPSPort: '443'
+            OriginProtocolPolicy: http-only
+          OriginCustomHeaders:
+            - HeaderName: Referer
+              HeaderValue: !Sub "https://${DomainName}/"
+        ViewerCertificate:
+          AcmCertificateArn: !ImportValue global-TLSCertificateArn
+          MinimumProtocolVersion: TLSv1.1_2016
+          SslSupportMethod: sni-only
+        PriceClass: PriceClass_100
+  #S3
+  BariumNahumRedirectS3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      AccessControl: PublicRead
+      BucketName: !Ref DomainNameRedirect
+      WebsiteConfiguration:
+        RedirectAllRequestsTo:
+          HostName: !Ref DomainName
+Outputs:
+  BariumNahumCDNDomainName:
+    Description: BariumNahumCDN domain name
+    Value: !GetAtt BariumNahumCDN.DomainName
+  BariumNahumRedirectCDNDomainName:
+    Description: BariumNahumRedirectCDN domain name
+    Value: !GetAtt BariumNahumRedirectCDN.DomainName
+  BariumNahumCDNDistributionId:
+    Description: BariumNahumCDN Distribution Id
+    Value: !Ref BariumNahumCDN
+    Export:
+      Name: !Sub ${Environment}-BariumNahumCDNDistributionId
