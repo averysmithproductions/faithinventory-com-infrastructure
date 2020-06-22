@@ -99,7 +99,7 @@ In order to create an username and password combination, follow these steps:
 
 | name | value |
 |-|-|
-| partitionKey | published |
+| partitionKey | 'published' |
 | authUser | `<authUser>` |
 | authPass | `<authPass>` |
 
