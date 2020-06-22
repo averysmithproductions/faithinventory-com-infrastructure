@@ -1,5 +1,5 @@
 # faithinventory-com-infrastructure
-[![faithinventory-com-infrastructure badge](https://img.shields.io/badge/faithinventory.com-infrastructure-%23b88e83)](https://faithinventory.com/)
+[![faithinventory-com-infrastructure badge](https://img.shields.io/badge/faithinventory.com-infrastructure-%23b88e83?style=for-the-badge&logo=amazon)](https://faithinventory.com/)
 
 
 Prerequisites
