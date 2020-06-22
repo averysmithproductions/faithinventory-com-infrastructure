@@ -131,4 +131,4 @@ To enable new deployments to occur, follow these steps:
 Please keep in mind you should go into the AWS Lambda console and delete any Lambda@Edge functions that are not in use. You'll have to give AWS some time to free the function up to the point of being able to deleted. **Sometimes it can take days!**
 
 More info about Lambda@Edge replicas and caching can be found at this link:
-[https://stackoverflow.com/questions/45296923/cannot-delete-aws-lambdaedge-replicas]
+https://stackoverflow.com/questions/45296923/cannot-delete-aws-lambdaedge-replicas
