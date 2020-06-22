@@ -1,7 +1,6 @@
 # faithinventory-com-infrastructure
 [![faithinventory-com-infrastructure badge](https://img.shields.io/badge/faithinventory.com-infrastructure-%23b88e83?style=for-the-badge&logo=amazon)](https://faithinventory.com/)
 
-
 Prerequisites
 - [An AWS Account with programmatic permission](https://aws.amazon.com/)
 - [aws cli](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-welcome.html)
