@@ -19,8 +19,9 @@ The templates have codenames which represent the "elements" of the infrastructur
 |-|-|-|
 | Global | [cloudformation/global.yaml](./cloudformation/global.yaml) | The *Global* Stack that creates the Hosted Zone Id and TLS Certificate. These resources are shared across all Child Stacks and all Environments. |
 | Environment | [cloudformation/environment.yaml](./cloudformation/environment.yaml) | The *Parent* Stack that nests all the child stacks. It handles all updates between child stacks. |
-| PlatinumEnoch | [cloudformation/platinumenoch.yaml](./cloudformation/platinumenoch.yaml) | The *Child* Stack that holds the front-end application. |
-| ThalliumEli | [cloudformation/thalliumeli.template.yaml](./cloudformation/thalliumeli.template.yaml) | The *Child* Stack that holds the api microservices. Please note that this "template" template is designed to remove a circular dependency between this stack and BariumNahum. |
+| PlatinumEnoch | [cloudformation/platinumenoch.yaml](./cloudformation/platinumenoch.yaml) | The *Child* Stack that holds the front-end application. [![faithinventory-com-platinumenoch badge](https://img.shields.io/badge/faithinventory.com-platinumenoch-%23b88e83?style=for-the-badge&logo=gatsby)](https://faithinventory.com/) |
+| ThalliumEli | [cloudformation/thalliumeli.template.yaml](./cloudformation/thalliumeli.template.yaml) | The *Child* Stack that holds the api microservices. Please note that this "template" template is designed to remove a circular dependency between this stack and BariumNahum. [![faithinventory-com-thalliumeli badge](https://img.shields.io/badge/faithinventory.com-thalliumeli-%23b88e83?style=for-the-badge&logo=javascript)](https://faithinventory.com/)
+|
 | BariumNahum | [cloudformation/bariumnahum.yaml](./cloudformation/bariumnahum.yaml) | The *Child* Stack that contains the application CDN. |
 | ArgonTimothy | [cloudformation/argontimothy.yaml](./cloudformation/argontimothy.yaml) | The *Child* Stack that maps the Hosted Zone Id and A Records to the CDN. |
 
@@ -29,12 +30,6 @@ The templates have codenames which represent the "elements" of the infrastructur
 Here is a diagram of what the infrastructure looks like:
 
 ![FaithInventory Infrastructure Diagram](https://user-images.githubusercontent.com/261457/85328008-f286b100-b49d-11ea-9dd5-4163790784f3.png)
-
-## Child Repos
-
-[![faithinventory-com-platinumenoch badge](https://img.shields.io/badge/faithinventory.com-platinumenoch-%23b88e83?style=for-the-badge&logo=gatsby)](https://faithinventory.com/)
-
-[![faithinventory-com-thalliumeli badge](https://img.shields.io/badge/faithinventory.com-thalliumeli-%23b88e83?style=for-the-badge&logo=javascript)](https://faithinventory.com/)
 
 ## Deployment
 
