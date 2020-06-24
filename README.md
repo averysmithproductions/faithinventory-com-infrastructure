@@ -40,7 +40,7 @@ Please note, a minimum of two environments have to be deployed, in the following
 4. `<domainname-prefix>-<environment-c>-stack`[Optional]
 etc...
 
-To deploy, following the following steps
+To deploy, follow these steps
 
 ### 1. Upload values to parameter store
 
