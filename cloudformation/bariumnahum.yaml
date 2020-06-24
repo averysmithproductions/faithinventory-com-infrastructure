@@ -14,9 +14,12 @@ Parameters:
   PlatinumEnochBasicAuthLambdaEdgeVersion:
     Type: String
     Default: <PlatinumEnochBasicAuthLambdaEdgeVersion>
-  ThalliumEliApiUrl:
+  ThalliumEliAuthenticatedApiUrl:
     Type: String
-    Default: <ThalliumEliApiUrl>
+    Default: <ThalliumEliAuthenticatedApiUrl>
+  ThalliumEliUnauthenticatedApiUrl:
+    Type: String
+    Default: <ThalliumEliUnauthenticatedApiUrl>
 Resources:
   #CloudFront
   BariumNahumCDN:
@@ -45,8 +48,31 @@ Resources:
             QueryString: true
         DefaultRootObject: index.html
         CacheBehaviors:
+        - PathPattern: '/api/1/admin/*'
+          TargetOriginId: thalliumeli-authenticated-api
+          ViewerProtocolPolicy: https-only
+          AllowedMethods:
+          - DELETE
+          - GET
+          - HEAD
+          - OPTIONS
+          - PATCH
+          - POST
+          - PUT
+          CachedMethods:
+          - GET
+          - HEAD
+          - OPTIONS
+          Compress: true
+          ForwardedValues:
+            Headers:
+            - Accept
+            - Referer
+            - Authorization
+            - Content-Type
+            QueryString: true
         - PathPattern: '/api/1/*'
-          TargetOriginId: thalliumeli-api
+          TargetOriginId: thalliumeli-unauthenticated-api
           ViewerProtocolPolicy: https-only
           AllowedMethods:
           - DELETE
@@ -78,9 +104,14 @@ Resources:
           OriginCustomHeaders:
             - HeaderName: Referer
               HeaderValue: !Sub "https://${DomainName}/"
-        - DomainName: !Ref ThalliumEliApiUrl
+        - DomainName: !Ref ThalliumEliAuthenticatedApiUrl
           OriginPath: !Sub "/${Environment}"
-          Id: thalliumeli-api
+          Id: thalliumeli-authenticated-api
+          CustomOriginConfig:
+            OriginProtocolPolicy: https-only
+        - DomainName: !Ref ThalliumEliUnauthenticatedApiUrl
+          OriginPath: !Sub "/${Environment}"
+          Id: thalliumeli-unauthenticated-api
           CustomOriginConfig:
             OriginProtocolPolicy: https-only
         ViewerCertificate:

@@ -41,7 +41,8 @@ Resources:
         DomainNameRedirect: !Ref DomainNameRedirect
         Environment: !Ref Environment
         PlatinumEnochBasicAuthLambdaEdgeVersion: !GetAtt PlatinumEnochStack.Outputs.PlatinumEnochBasicAuthLambdaEdgeVersion
-        ThalliumEliApiUrl: !GetAtt ThalliumEliStack.Outputs.ThalliumEliApiUrl
+        ThalliumEliAuthenticatedApiUrl: !GetAtt ThalliumEliStack.Outputs.ThalliumEliAuthenticatedApiUrl
+        ThalliumEliUnauthenticatedApiUrl: !GetAtt ThalliumEliStack.Outputs.ThalliumEliUnauthenticatedApiUrl
       TemplateURL: !Sub "https://${TemplatesBucketName}.s3.amazonaws.com/cloudformation/bariumnahum.yaml"
     DependsOn:
     - PlatinumEnochStack
