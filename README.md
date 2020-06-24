@@ -36,7 +36,6 @@ Please note, a minimum of two environments have to be deployed, in the following
 
 1. `<domainname-prefix>-global-stack`
 2. `<domainname-prefix>-<environment-a>-stack`
-[Optional]
 3. `<domainname-prefix>-<environment-b>-stack`[Optional]
 4. `<domainname-prefix>-<environment-c>-stack`[Optional]
 etc...
