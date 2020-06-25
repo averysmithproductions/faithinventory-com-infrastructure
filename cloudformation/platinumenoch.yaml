@@ -44,7 +44,7 @@ Resources:
           Condition:
             StringLike:
               aws:Referer:
-                # S3 will give a 403 on it's bucket endpoints. It will only return a 200 PlatinumEnochCDN passes in this designated url.
+                # S3 will give a 403 on it's bucket endpoints. It will only return a 200 if BariumNahumCDN passes in this designated url.
                 - !Sub "https://${DomainName}/*"
   PlatinumEnochMediaS3Bucket:
     Type: AWS::S3::Bucket
