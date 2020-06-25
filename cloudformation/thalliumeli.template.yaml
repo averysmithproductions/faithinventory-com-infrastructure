@@ -362,6 +362,35 @@ Resources:
           - DimensionName: !Ref ThalliumEliSESConfigSet
             DefaultDimensionValue: 'null'
             DimensionValueSource: emailHeader
+  #S3
+  ThalliumEliApiDocsS3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      AccessControl: Private
+      BucketName: !Sub ${Environment}-thalliumeli-api-docs
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: error.html
+  ThalliumEliApiDocsS3BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref ThalliumEliApiDocsS3Bucket
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Sid: AddPerm
+          Effect: Allow
+          Principal: '*'
+          Action:
+          - s3:GetObject
+          - s3:PutObject
+          Resource:
+          - !Sub "arn:aws:s3:::${Environment}-thalliumeli-api-docs/*"
+          Condition:
+            StringLike:
+              aws:Referer:
+                # S3 will give a 403 on it's bucket endpoints. It will only return a 200 BariumNahumCDN passes in this designated url.
+                - !Sub "https://${DomainName}/*"
 Outputs:
   ThalliumEliUnauthenticatedApiUrl:
     Description: API Gateway Url

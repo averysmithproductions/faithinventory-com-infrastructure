@@ -71,6 +71,11 @@ Resources:
             - Authorization
             - Content-Type
             QueryString: true
+        - PathPattern: '/api/1/docs/*'
+          TargetOriginId: thalliumeli-api-docs
+          ViewerProtocolPolicy: redirect-to-https
+          ForwardedValues:
+            QueryString: true
         - PathPattern: '/api/1/*'
           TargetOriginId: thalliumeli-unauthenticated-api
           ViewerProtocolPolicy: https-only
@@ -97,6 +102,15 @@ Resources:
         Origins:
         - DomainName: !Sub "${Environment}-platinumenoch.s3-website-${AWS::Region}.amazonaws.com"
           Id: platinumenoch
+          CustomOriginConfig:
+            HTTPPort: '80'
+            HTTPSPort: '443'
+            OriginProtocolPolicy: http-only
+          OriginCustomHeaders:
+            - HeaderName: Referer
+              HeaderValue: !Sub "https://${DomainName}/"
+        - DomainName: !Sub "${Environment}-thalliumeli-api-docs.s3-website-${AWS::Region}.amazonaws.com"
+          Id: thalliumeli-api-docs
           CustomOriginConfig:
             HTTPPort: '80'
             HTTPSPort: '443'
