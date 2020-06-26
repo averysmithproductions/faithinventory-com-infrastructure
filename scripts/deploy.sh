@@ -4,7 +4,7 @@ TEMPLATE=./cloudformation/environment.yaml
 # work-around to enable a stack to be deployed while a previous Lambda@Edge function deletes.
 # update with a newly random string when a Lambda@Edge function stops a new deployment from occuring.
 # string generated from random.org.
-CACHE_HASH=Wn3QDf
+CACHE_HASH=cpKdES
 [[ $ENVIRONMENT != prod ]] && SUBDOMAIN="$ENVIRONMENT". || SUBDOMAIN=""
 
 if [ $ENVIRONMENT != 'global' ] && [ $ENVIRONMENT != 'prod' ] && [ $ENVIRONMENT != 'dev' ] && [ $ENVIRONMENT != 'avery' ]; then
