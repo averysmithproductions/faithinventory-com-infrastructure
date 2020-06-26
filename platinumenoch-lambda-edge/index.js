@@ -19,10 +19,10 @@ exports.handler = (event, context, callback) => {
     // const authStrings = [
     //   `Basic ${authUser}:${authPass}` // share this authentication with others
     // ]
-    const getAuthUsers = () => new Promise( (resolve, reject) => {
+    const AWS = require('aws-sdk')
+    AWS.config.update({region: 'us-east-1'})
+    const getAuthUsers = () => new Promise( async (resolve, reject) => {
       console.log('D')
-      const AWS = require('aws-sdk')
-      AWS.config.update({region: 'us-east-1'})
       var params = {
           KeyConditionExpression: 'partitionKey = :partitionKey',
           ExpressionAttributeValues: {
@@ -31,17 +31,14 @@ exports.handler = (event, context, callback) => {
           TableName: `${environment}-PlatinumEnochBasicAuthTable`
       }
       console.log('E', params)
-      const dynamo = new AWS.DynamoDB.DocumentClient()
-      dynamo.query(params, (err, data) => {
-          if (err) {
-              console.log('F')
-              reject(err)
-          } else {
-              console.log('G')
-              const authStrings = data.Items.map( ({ authUser, authPass }) => `Basic ${authUser}:${authPass}`)
-              resolve(authStrings)
-          }
-      })
+      try {
+        const dynamo = new AWS.DynamoDB.DocumentClient()
+        const data = await dynamo.query(params).promise()
+        const authStrings = data.Items.map( ({ authUser, authPass }) => `Basic ${authUser}:${authPass}`)
+        resolve(authStrings)
+      } catch (err) {
+        reject(err)
+      }
     })
     let submitted
     const body = 'Unauthorized access.'
