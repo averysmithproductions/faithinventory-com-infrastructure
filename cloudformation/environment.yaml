@@ -24,6 +24,15 @@ Resources:
         DomainName: !Ref DomainName
         Environment: !Ref Environment
       TemplateURL: !Sub "https://${TemplatesBucketName}.s3.amazonaws.com/cloudformation/thalliumeli.yaml"
+  ThalliumEliApiKeysStack: 
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      Parameters:
+        DomainName: !Ref DomainName
+        Environment: !Ref Environment
+        ThalliumEliAuthenticatedApi: !GetAtt ThalliumEliStack.Outputs.ThalliumEliAuthenticatedApi
+      TemplateURL: !Sub "https://${TemplatesBucketName}.s3.amazonaws.com/cloudformation/thalliumeli-apikeys.yaml"
+    DependsOn: ThalliumEliStack
   PlatinumEnochStack: 
     Type: AWS::CloudFormation::Stack
     Properties: 
