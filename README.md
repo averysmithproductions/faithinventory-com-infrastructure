@@ -28,7 +28,7 @@ The templates have codenames which represent the "elements" of the infrastructur
 
 Here is a diagram of what the infrastructure looks like:
 
-![FaithInventory Infrastructure Diagram](https://user-images.githubusercontent.com/261457/85328008-f286b100-b49d-11ea-9dd5-4163790784f3.png)
+![FaithInventory Infrastructure Diagram](https://user-images.githubusercontent.com/261457/85934229-40d8ed00-b8ae-11ea-9348-8a5d55108fa1.png)
 
 ## Deployment
 
