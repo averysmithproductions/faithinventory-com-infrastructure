@@ -19,7 +19,7 @@ The templates have codenames which represent the "elements" of the infrastructur
 |-|-|-|
 | Global | [cloudformation/global.yaml](./cloudformation/global.yaml) | The *Global* Stack that creates the Hosted Zone Id and TLS Certificate. These resources are shared across all Child Stacks and all Environments. <br /><br />[<img title="Global Stack icon" src="https://user-images.githubusercontent.com/261457/85490288-7ffdfa00-b59f-11ea-8754-a789c2b7e866.png" width="90" />](https://github.com/averysmithproductions/faithinventory-com-infrastructure#diagram) |
 | Environment | [cloudformation/environment.yaml](./cloudformation/environment.yaml) | The *Parent* Stack that nests all the child stacks. It handles all updates between child stacks.<br /><br />[<img title="Environment Stack icon" src="https://user-images.githubusercontent.com/261457/85490288-7ffdfa00-b59f-11ea-8754-a789c2b7e866.png" width="90" />](https://github.com/averysmithproductions/faithinventory-com-infrastructure#diagram) |
-| PlatinumEnoch | [cloudformation/platinumenoch.yaml](./cloudformation/platinumenoch.yaml) | The *Child* Stack that holds the front-end application. <br /><br />[<img title="ThalliumEli icon" src="https://user-images.githubusercontent.com/261457/85481153-4a511500-b58f-11ea-8020-ec01f0b878f9.png" width="90" />](https://github.com/averysmithproductions/faithinventory-com-infrastructure#diagram)<br /><br /> PlatinumEnochS3Bucket Code Repo:<br /><br />[![faithinventory-com-platinumenoch badge](https://img.shields.io/badge/faithinventory.com-platinumenoch-%23b88e83?style=for-the-badge&logo=gatsby)](https://github.com/averysmithproductions/faithinventory-com-platinumenoch) |
+| PlatinumEnoch | [cloudformation/platinumenoch.template.yaml](./cloudformation/platinumenoch.template.yaml) | The *Child* Stack that holds the front-end application. Please note that this "template" template is designed to remove a circular dependency between this stack and BariumNahum.<br /><br />[<img title="ThalliumEli icon" src="https://user-images.githubusercontent.com/261457/85481153-4a511500-b58f-11ea-8020-ec01f0b878f9.png" width="90" />](https://github.com/averysmithproductions/faithinventory-com-infrastructure#diagram)<br /><br /> PlatinumEnochS3Bucket Code Repo:<br /><br />[![faithinventory-com-platinumenoch badge](https://img.shields.io/badge/faithinventory.com-platinumenoch-%23b88e83?style=for-the-badge&logo=gatsby)](https://github.com/averysmithproductions/faithinventory-com-platinumenoch) |
 | ThalliumEli | [cloudformation/thalliumeli.template.yaml](./cloudformation/thalliumeli.template.yaml) | The *Child* Stack that holds the api microservices. Please note that this "template" template is designed to remove a circular dependency between this stack and BariumNahum. <br /><br />[<img title="ThalliumEli icon" src="https://user-images.githubusercontent.com/261457/85421172-1dc2dc00-b542-11ea-8c9e-277d92efa9f7.png" width="90" />](https://github.com/averysmithproductions/faithinventory-com-infrastructure#diagram)<br /><br />ThalliumEliLambda Code Repo:<br /><br />[![faithinventory-com-thalliumeli badge](https://img.shields.io/badge/faithinventory.com-thalliumeli-%23b88e83?style=for-the-badge&logo=javascript)](https://github.com/averysmithproductions/faithinventory-com-thalliumeli) |
 | BariumNahum | [cloudformation/bariumnahum.yaml](./cloudformation/bariumnahum.yaml) | The *Child* Stack that contains the application CDN.<br /><br />[<img title="BariumNahum Stack icon" src="https://user-images.githubusercontent.com/261457/85490495-db2fec80-b59f-11ea-89d1-468f0b6091d2.png" width="90" />](https://github.com/averysmithproductions/faithinventory-com-infrastructure#diagram) |
 | ArgonTimothy | [cloudformation/argontimothy.yaml](./cloudformation/argontimothy.yaml) | The *Child* Stack that maps the Hosted Zone Id and A Records to the CDN.<br /><br />[<img title="ArgonTimothy Stack icon" src="https://user-images.githubusercontent.com/261457/85490620-192d1080-b5a0-11ea-94e3-a35b611d1c50.png" height="110" />](https://github.com/averysmithproductions/faithinventory-com-infrastructure#diagram) |
@@ -130,3 +130,38 @@ Please keep in mind you should go into the AWS Lambda console and delete any Lam
 
 More info about Lambda@Edge replicas and caching can be found at this link:
 https://stackoverflow.com/questions/45296923/cannot-delete-aws-lambdaedge-replicas
+
+### About the PlatinumEnochCacheInvalidator Lambda
+
+The purpose of this lambda is to enable the PlatinumEnochS3Bucket to clear it's own cache. This is critical it receives s3 file syncs from Gatsby Cloud, and without this Lambda CloudFront would not know to clear its cache, thus preventing site updates to show.
+
+
+The Lambda receives notifications from S3 via SQS.
+
+The AWS Documentation says that SQS can detected when it's empty by analyzing the attributes:
+
+```
+ApproximateNumberOfMessagesVisible
+ApproximateNumberOfMessagesNotVisible
+ApproximateNumberOfMessagesDelayed
+```
+
+If they evaluate to less than or equal to 1, then that means that the queue is empty or close to empty.
+
+- https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-short-and-long-polling.html#sqs-long-polling
+
+but after further analysis and development, it appears that the SQS object doesn't have the property, `ApproximateNumberOfMessagesNotVisible`. It only has `ApproximateNumberOfMessages`.
+
+Therefore, we will just use the `ApproximateNumberOfMessages` value instead.
+
+Next, because of the polling mechanism behind SQS, it inconsistenly reports the above attributes as less than or equal to 1. Polling is not an accurate way to assess what's left in the queue. It's only a guess unless the poll request happens to perfectly land on the last queue or so.
+
+So the Lambda kicks off an invalidation at the start of every log group.
+
+The idea here is the latency between the S3 Put Object event, the SQS delay, and time CloudFront takes to invalidate will be enough time to catch clear files on S3, even though the queue messages have not actually completed yet.
+
+Just in case, if this is on the last or so queue message in the log group, kick off an invalidation.
+
+Ultimately, this Lambda  kicks off multiple CloudFront invalidations since multiple requests can pass this use-case.
+
+In theory, it's better to kick off a few more invalidations than none at all. The limit of concurrent invalidations is 3000. Running 5-10 invalidations is a tolerable to perform CloudFront invalidations of S3.

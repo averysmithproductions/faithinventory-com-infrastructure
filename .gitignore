@@ -3,4 +3,5 @@ build
 templates
 node_modules
 scripts/put-parameters.sh
+cloudformation/platinumenoch.yaml
 cloudformation/thalliumeli.yaml
