@@ -1,0 +1,41 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::Serverless-2016-10-31
+Description: ThalliumEli API Keys (new api key declarations can be added below)
+Parameters:
+  DomainName:
+    Type: String
+    Default: <DomainName>
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues: [prod, dev, avery]
+  ThalliumEliAuthenticatedApi:
+    Type: String
+    Default: <ThalliumEliAuthenticatedApi>
+Resources:
+  #ThalliumEli ApiKey
+  ThalliumEliApiMasterKey:
+    Type: AWS::ApiGateway::ApiKey
+    Properties: 
+      Name: !Sub ${Environment}-ThalliumEliApiMasterKey
+      Enabled: true
+  ThalliumEliApiKeyUsagePlan:
+    Type: AWS::ApiGateway::UsagePlan
+    Properties:
+      ApiStages:
+        - ApiId: !Ref ThalliumEliAuthenticatedApi
+          Stage: !Ref Environment
+      Description: !Sub "${Environment} ThalliumEliApi Usage Plan"
+      Quota:
+        Limit: 500
+        Period: DAY
+      Throttle:
+        BurstLimit: 5
+        RateLimit: 5
+      UsagePlanName: !Sub ${Environment}-ThalliumEliApiKeyUsagePlan
+  ThalliumEliUsagePlanKey:
+    Type: AWS::ApiGateway::UsagePlanKey
+    Properties:
+      KeyId: !Ref ThalliumEliApiMasterKey
+      KeyType: API_KEY
+      UsagePlanId: !Ref ThalliumEliApiKeyUsagePlan

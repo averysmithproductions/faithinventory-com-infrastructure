@@ -185,32 +185,6 @@ Resources:
                 uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ThalliumEliLambda.Arn}/invocations
                 passthroughBehavior: "when_no_match"
               responses: {}
-  #ThalliumEli ApiKey
-  ThalliumEliApiKey:
-    Type: AWS::ApiGateway::ApiKey
-    Properties: 
-      Name: !Sub ${Environment}-ThalliumEliApiKey
-      Enabled: true
-  ThalliumEliApiKeyUsagePlan:
-    Type: AWS::ApiGateway::UsagePlan
-    Properties:
-      ApiStages:
-        - ApiId: !Ref ThalliumEliAuthenticatedApi
-          Stage: !Ref Environment
-      Description: !Sub "${Environment} ThalliumEliApi Usage Plan"
-      Quota:
-        Limit: 500
-        Period: DAY
-      Throttle:
-        BurstLimit: 5
-        RateLimit: 5
-      UsagePlanName: !Sub ${Environment}-ThalliumEliApiKeyUsagePlan
-  ThalliumEliUsagePlanKey:
-    Type: AWS::ApiGateway::UsagePlanKey
-    Properties:
-      KeyId: !Ref ThalliumEliApiKey
-      KeyType: API_KEY
-      UsagePlanId: !Ref ThalliumEliApiKeyUsagePlan
   #ThalliumEli Lambda
   ThalliumEliLambda:
     Type: AWS::Serverless::Function
@@ -398,3 +372,6 @@ Outputs:
   ThalliumEliAuthenticatedApiUrl:
     Description: API Gateway Url
     Value: !Sub ${ThalliumEliAuthenticatedApi}.execute-api.${AWS::Region}.amazonaws.com
+  ThalliumEliAuthenticatedApi:
+    Description: API Gateway Authenticated Resource Id
+    Value: !Ref ThalliumEliAuthenticatedApi
