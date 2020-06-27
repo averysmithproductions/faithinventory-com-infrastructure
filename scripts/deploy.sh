@@ -4,7 +4,7 @@ TEMPLATE=./cloudformation/environment.yaml
 # work-around to enable a stack to be deployed while a previous Lambda@Edge function deletes.
 # update with a newly random string when a Lambda@Edge function stops a new deployment from occuring.
 # string generated from random.org.
-CACHE_HASH=OHDzMB
+CACHE_HASH=FaJXnb
 [[ $ENVIRONMENT != prod ]] && SUBDOMAIN="$ENVIRONMENT". || SUBDOMAIN=""
 
 if [ $ENVIRONMENT != 'global' ] && [ $ENVIRONMENT != 'prod' ] && [ $ENVIRONMENT != 'dev' ] && [ $ENVIRONMENT != 'avery' ]; then
@@ -61,8 +61,9 @@ else
     zip -j ./build/lambda.zip ./platinumenoch-lambda-edge/index.js
     aws s3 cp ./build/lambda.zip s3://$DEPLOYMENT_BUCKET/platinumenoch-lambda-edge/ --profile $AWS_PROFILE
 
-    # create ThalliumEliStack with templatized <BariumNahumCDNDistributionId> environment variable
-    #  this strategy removes the circular dependency between ThalliumEliStack and BariumNahumStack
+    # create PlatinumEnochStack and ThalliumEliStack with templatized <BariumNahumCDNDistributionId> environment variable
+    #  this strategy removes the circular dependency between those individual stacks and BariumNahumStack
+    cp ./cloudformation/platinumenoch.template.yaml ./cloudformation/platinumenoch.yaml
     cp ./cloudformation/thalliumeli.template.yaml ./cloudformation/thalliumeli.yaml
 
     aws s3 sync ./cloudformation s3://$DEPLOYMENT_BUCKET/cloudformation --delete --exclude 'global.yaml' --exclude 'thalliumeli.template.yaml' --profile $AWS_PROFILE
@@ -95,11 +96,13 @@ else
         --profile $AWS_PROFILE                                \
         --parameter-overrides CacheHash=$CACHE_HASH DomainName=$DOMAIN_NAME DomainNameRedirect=$DOMAIN_NAME_REDIRECT Environment=$ENVIRONMENT TemplatesBucketName=$DEPLOYMENT_BUCKET
 
-    # now connect ThalliumEliStack to BariumNahumStack
+    # now connect PlatinumEnochStack and ThalliumEliStack to BariumNahumStack
     DISTRIBUTION_ID_FRAGMENT='BARIUMNAHUM_DISTRIBUTION_ID:\
             Fn::ImportValue:\
               !Sub "${Environment}-BariumNahumCDNDistributionId"'
+    sed -i '' -e "s%BARIUMNAHUM_DISTRIBUTION_ID: <BariumNahumCDNDistributionId>%$DISTRIBUTION_ID_FRAGMENT%" ./cloudformation/platinumenoch.yaml
     sed -i '' -e "s%BARIUMNAHUM_DISTRIBUTION_ID: <BariumNahumCDNDistributionId>%$DISTRIBUTION_ID_FRAGMENT%" ./cloudformation/thalliumeli.yaml
+    aws s3 cp ./cloudformation/platinumenoch.yaml s3://$DEPLOYMENT_BUCKET/cloudformation/platinumenoch.yaml --profile $AWS_PROFILE
     aws s3 cp ./cloudformation/thalliumeli.yaml s3://$DEPLOYMENT_BUCKET/cloudformation/thalliumeli.yaml --profile $AWS_PROFILE
 
     # apply the above patch

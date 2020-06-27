@@ -130,3 +130,38 @@ Please keep in mind you should go into the AWS Lambda console and delete any Lam
 
 More info about Lambda@Edge replicas and caching can be found at this link:
 https://stackoverflow.com/questions/45296923/cannot-delete-aws-lambdaedge-replicas
+
+### About the PlatinumEnochCacheInvalidator Lambda
+
+The purpose of this lambda is to enable the PlatinumEnochS3Bucket to clear it's own cache. This is critical it receives s3 file syncs from Gatsby Cloud, and without this Lambda CloudFront would not know to clear its cache, thus preventing site updates to show.
+
+
+The Lambda receives notifications from S3 via SQS.
+
+The AWS Documentation says that SQS can detected when it's empty by analyzing the attributes:
+
+```
+ApproximateNumberOfMessagesVisible
+ApproximateNumberOfMessagesNotVisible
+ApproximateNumberOfMessagesDelayed
+```
+
+If they evaluate to less than or equal to 1, then that means that the queue is empty or close to empty.
+
+- https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-short-and-long-polling.html#sqs-long-polling
+
+but after further analysis and development, it appears that the SQS object doesn't have the property, `ApproximateNumberOfMessagesNotVisible`. It only has `ApproximateNumberOfMessages`.
+
+Therefore, we will just use the `ApproximateNumberOfMessages` value instead.
+
+Next, because of the polling mechanism behind SQS, it inconsistenly reports the above attributes as less than or equal to 1. Polling is not an accurate way to assess what's left in the queue. It's only a guess unless the poll request happens to perfectly land on the last queue or so.
+
+So the Lambda kicks off an invalidation at the start of every log group.
+
+The idea here is the latency between the S3 Put Object event, the SQS delay, and time CloudFront takes to invalidate will be enough time to catch clear files on S3, even though the queue messages have not actually completed yet.
+
+Just in case, if this is on the last or so queue message in the log group, kick off an invalidation.
+
+Ultimately, this Lambda  kicks off multiple CloudFront invalidations since multiple requests can pass this use-case.
+
+In theory, it's better to kick off a few more invalidations than none at all. The limit of concurrent invalidations is 3000. Running 5-10 invalidations is a tolerable to perform CloudFront invalidations of S3.

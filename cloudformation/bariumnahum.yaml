@@ -37,8 +37,7 @@ Resources:
           # DefaultTTL and MaxTTL do not modify the response object
           # but they enable CloudFront to allow the 'Cache-Control' headers to be sent from Lambda@Edge
           # for more information: - https://stackoverflow.com/questions/58915273/cloudfront-customize-object-caching-does-not-work
-          DefaultTTL: 2592000 # 30 days in seconds
-          MaxTTL: 31536000 #365 days in seconds
+          DefaultTTL: 31536000 #365 days in seconds
           LambdaFunctionAssociations:
             - EventType: viewer-request
               # <SAM-Function.Version> provides {FunctionARN}:{Version} which is exactly what Cloudfront expects
@@ -71,11 +70,14 @@ Resources:
             - Authorization
             - Content-Type
             QueryString: true
+          MinTTL: 0
+          MaxTTL: 31536000 #365 days in seconds
         - PathPattern: '/api/1/docs/*'
           TargetOriginId: thalliumeli-api-docs
           ViewerProtocolPolicy: redirect-to-https
           ForwardedValues:
             QueryString: true
+          DefaultTTL: 31536000 #365 days in seconds
         - PathPattern: '/api/1/*'
           TargetOriginId: thalliumeli-unauthenticated-api
           ViewerProtocolPolicy: https-only
@@ -99,6 +101,8 @@ Resources:
             - Authorization
             - Content-Type
             QueryString: true
+          MinTTL: 0
+          MaxTTL: 31536000 #365 days in seconds
         Origins:
         - DomainName: !Sub "${Environment}-platinumenoch.s3-website-${AWS::Region}.amazonaws.com"
           Id: platinumenoch
