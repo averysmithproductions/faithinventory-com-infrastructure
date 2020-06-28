@@ -62,7 +62,7 @@ Resources:
       CorsConfiguration:
         CorsRules:
           - AllowedOrigins:
-            - !Sub "https://${DomainName}/*"
+            - !Sub "https://${DomainName}"
             AllowedMethods:
             - GET
             - PUT
